@@ -1,9 +1,9 @@
 const app = require('../src/app');
 
 describe('App', () => {
-  it('GET / responds with 200 containing "Hello, world!"', () => {
+  it('GET /api/hello responds with 200 containing JSON object { ok: true }', () => {
     return supertest(app)
-      .get('/')
-      .expect(200, 'Hello, world!')
+      .get('/api/hello')
+      .expect(200, { ok: true })
   });
 });
