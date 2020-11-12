@@ -40,6 +40,7 @@ describe('Users Endpoints', () => {
           user_name: 'test user_name',
           password: 'test password',
           full_name: 'test full_name',
+          notes: 'these are some test notes',
           moving_date: '2029-12-31'
         }
 
@@ -134,6 +135,7 @@ describe('Users Endpoints', () => {
           user_name: 'test user_name',
           password: '11AAaa!!',
           full_name: 'test full_name',
+          notes: 'these are some test notes',
           moving_date: '2029-12-31'
         }
         return supertest(app)
@@ -144,6 +146,7 @@ describe('Users Endpoints', () => {
             expect(res.body).to.have.property('id')
             expect(res.body.user_name).to.eql(xss(newUser.user_name))
             expect(res.body.full_name).to.eql(xss(newUser.full_name))
+            expect(res.body.notes).to.eql(xss(newUser.notes))
             expect(res.body).to.not.have.property('password')
             expect(res.headers.location).to.eql(`/api/users/${res.body.id}`)
             const expectedDateCreated = new Date().toLocaleString()
@@ -162,6 +165,7 @@ describe('Users Endpoints', () => {
               .then(row => {
                 expect(row.user_name).to.eql(newUser.user_name)
                 expect(row.full_name).to.eql(newUser.full_name)
+                expect(row.notes).to.eql(newUser.notes)
                 const expectedDBDateCreated = new Date().toLocaleString()
                 const actualDBDateCreated = new Date(row.date_created).toLocaleString()
                 const expectedDBMovingDate = new Date(newUser.moving_date).toLocaleString()
@@ -179,6 +183,63 @@ describe('Users Endpoints', () => {
     })
   })
 
+  describe('GET /api/users', () => {
+    context('Given no users', () => {
+      it('responds 401 Unauthorized', () => {
+        return supertest(app)
+          .get('/api/users')
+          .set('Authorization', helpers.makeAuthHeader(testUser))
+          .expect(401, { error: 'Unauthorized request' })
+      })
+    })
+
+    context('Given there are users in the database', () => {
+      beforeEach('insert users', () => 
+        helpers.seedUsers(
+          db,
+          testUsers
+        )
+      )
+
+      it('responds with 200 and the user described in token', () => {
+        return supertest(app)
+          .get('/api/users')
+          .set('Authorization', helpers.makeAuthHeader(testUser))
+          .expect(200)
+          .then(res => {
+            expect(res.body.id).to.eql(testUser.id)
+            expect(res.body.user_name).to.eql(testUser.user_name)
+            expect(res.body.full_name).to.eql(testUser.full_name)
+            expect(res.body.moving_date).to.eql(new Date(testUser.moving_date).toISOString())
+            expect(res.body.notes).to.eql(testUser.notes)
+          })
+      })
+    })
+
+    context('Given XSS attack in user fields', () => {
+      const { maliciousUser, expectedUser } = helpers.makeMaliciousUser()
+      
+      beforeEach('insert malicious user', () => {
+        return helpers.seedMaliciousUser(
+          db,
+          maliciousUser
+        )
+      })
+
+      it('removes XSS attack content', () => {
+        return supertest(app)
+          .get('/api/users')
+          .set('Authorization', helpers.makeAuthHeader(maliciousUser))
+          .expect(200)
+          .expect(res => {
+            expect(res.body.user_name).to.eql(expectedUser.user_name)
+            expect(res.body.full_name).to.eql(expectedUser.full_name)
+            expect(res.body.notes).to.eql(expectedUser.notes)
+          })
+      })
+    })
+  })
+
   describe('PATCH /api/users', () => {
     context('Given there are users in the database', () => {
       beforeEach('insert users', () => 
@@ -190,40 +251,65 @@ describe('Users Endpoints', () => {
 
       it('responds with 204 and updates user', () => {
         const updateUser = {
+          notes: 'these are updated test notes',
           moving_date: '2029-01-01'
         }
         const expectedUser = {
           ...testUser,
-          ...updateUser
+          ...updateUser,
+          moving_date: new Date(updateUser.moving_date).toISOString()
         }
+        delete expectedUser.password
         return supertest(app)
           .patch('/api/users')
           .set('Authorization', helpers.makeAuthHeader(testUser))
           .send({
             ...updateUser,
-            fieldToIgnore: 'should not be in database response'
+            fieldToIgnore: 'should not be in GET response'
           })
           .expect(204)
-          .expect(res =>
-            db
-              .from('movingday_users')
-              .select('*')
-              .where({ id: testUser.id })
-              .first()
-              .then(row => {
-                expect(expectedUser)
-              })
+          .then(res => 
+            supertest(app)
+              .get('/api/users')
+              .set('Authorization', helpers.makeAuthHeader(testUser))
+              .expect(expectedUser)
           )
       })
 
-      it('responds with 400 when moving_date not supplied', () => {
+      it('responds with 400 when no required fields supplied', () => {
         return supertest(app)
           .patch('/api/users')
           .set('Authorization', helpers.makeAuthHeader(testUser))
           .send({ full_name: 'ignoring this field', irrelevantField: 'foo' })
           .expect(400, {
-            error: `Request body must contain 'moving_date'`
+            error: `Request body must contain 'moving_date' or 'notes'`
           })
+      })
+
+      it('responds with 204 when updating only a subset of fields', () => {
+        const updateUser = {
+          notes: 'these are updated test notes'
+        }
+        const expectedUser = {
+          ...testUser,
+          ...updateUser,
+          moving_date: new Date(testUser.moving_date).toISOString()
+        }
+        delete expectedUser.password
+        return supertest(app)
+          .patch('/api/users')
+          .set('Authorization', helpers.makeAuthHeader(testUser))
+          .send({
+            ...updateUser,
+            fieldToIgnore: 'should not be in GET response'
+          })
+          .expect(204)
+          .then(res =>
+            supertest(app)
+            .get('/api/users')
+            .set('Authorization', helpers.makeAuthHeader(testUser))
+            .expect(expectedUser)
+          )
       })
     })
   })

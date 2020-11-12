@@ -11,6 +11,12 @@ const UsersService = {
       .then(user => !!user)
   },
 
+  getUserById(db, id) {
+    return db('movingday_users')
+      .where({ id })
+      .first()
+  },
+
   insertUser(db, newUser) {
     return db
       .insert(newUser)
@@ -19,8 +25,8 @@ const UsersService = {
       .then(([user]) => user)
   },
 
-  updateUser(knex, id, newUserFields) {
-    return knex('movingday_users')
+  updateUser(db, id, newUserFields) {
+    return db('movingday_users')
       .where({ id })
       .update(newUserFields)
   },
@@ -50,6 +56,7 @@ const UsersService = {
       id: user.id,
       full_name: xss(user.full_name),
       user_name: xss(user.user_name),
+      notes: xss(user.notes),
       moving_date: new Date(user.moving_date),
       date_created: new Date(user.date_created)
     }
