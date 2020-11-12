@@ -8,6 +8,7 @@ function makeUsersArray() {
       user_name: 'test-user-1',
       full_name: 'Test user 1',
       password: 'password',
+      notes: 'these are some test notes',
       moving_date: '2029-02-04',
       date_created: '2029-01-22T16:28:32.615Z',
     },
@@ -16,6 +17,7 @@ function makeUsersArray() {
       user_name: 'test-user-2',
       full_name: 'Test user 2',
       password: 'password',
+      notes: 'these are some test notes',
       moving_date: '2029-02-04',
       date_created: '2029-01-22T16:28:32.615Z',
     },
@@ -24,6 +26,7 @@ function makeUsersArray() {
       user_name: 'test-user-3',
       full_name: 'Test user 3',
       password: 'password',
+      notes: 'these are some test notes',
       moving_date: '2029-02-04',
       date_created: '2029-01-22T16:28:32.615Z',
     },
@@ -32,6 +35,7 @@ function makeUsersArray() {
       user_name: 'test-user-4',
       full_name: 'Test user 4',
       password: 'password',
+      notes: 'these are some test notes',
       moving_date: '2029-02-04',
       date_created: '2029-01-22T16:28:32.615Z',
     },
@@ -74,10 +78,38 @@ function makeAuthHeader(user, secret = process.env.JWT_SECRET) {
   return `Bearer ${token}`
 }
 
+function makeMaliciousUser() {
+  const maliciousUser = {
+    id: 911,
+    user_name: 'Naughty naughty very naughty <script>alert("xss");</script>',
+    full_name: 'Naughty naughty very naughty <script>alert("xss");</script>',
+    password: 'password',
+    notes: `Bad image <img src="https://url.to.file.which/does-not.exist" onerror="alert(document.cookie);">. But not <strong>all</strong> bad.`,
+    moving_date: '2029-02-04',
+    date_created: '2029-01-22T16:28:32.615Z',
+  }
+  const expectedUser = {
+    ...maliciousUser,
+    user_name: 'Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;',
+    full_name: 'Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;',
+    notes: `Bad image <img src="https://url.to.file.which/does-not.exist">. But not <strong>all</strong> bad.`
+  }
+  return {
+    maliciousUser,
+    expectedUser
+  }
+}
+
+function seedMaliciousUser(db, user) {
+  return db.into('movingday_users').insert(user)
+}
+
 module.exports = {
   makeUsersArray,
   makeMovingdayFixtures,
   cleanTables,
   seedUsers,
   makeAuthHeader,
+  makeMaliciousUser,
+  seedMaliciousUser,
 }

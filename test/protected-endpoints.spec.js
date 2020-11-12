@@ -37,6 +37,11 @@ describe('Protected Endpoints', () => {
       path: '/api/users',
       method: supertest(app).patch
     },
+    {
+      name: 'GET /api/users',
+      path: '/api/users',
+      method: supertest(app).get
+    },
   ]
 
   protectedEndpoints.forEach(endpoint => {
