@@ -1,4 +1,5 @@
 const knex = require('knex')
+const supertest = require('supertest')
 const app = require('../src/app')
 const helpers = require('./test-helpers')
 
@@ -143,6 +144,77 @@ describe('Contacts Endpoints', () => {
                 expect(actualDbDateCreated).to.eql(expectedDbDateCreated)
               })
           )
+      })
+    })
+  })
+
+  describe.only('GET /api/contacts/:id', () => {
+    context('Given no contacts', () => {
+      beforeEach(() => helpers.seedUsers(db, testUsers))
+
+      it('responds with 404', () => {
+        const contactId = 123456
+        return supertest(app)
+          .get(`/api/contacts/${contactId}`)
+          .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
+          .expect(404, { error: `Contact doesn't exist` })
+      })
+    })
+
+    context('Given there are contacts in the database', () => {
+      beforeEach('seed tables', () => 
+        helpers.seedMovingdayTables(
+          db,
+          testUsers,
+          testContacts,
+        )
+      )
+
+      it('responds with 200 and specified contact if it belongs to logged in user', () => {
+        const contactId = 1
+        const expectedContact = testContacts[contactId - 1]
+        return supertest(app)
+          .get(`/api/contacts/${contactId}`)
+          .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
+          .expect(200, expectedContact)
+      })
+
+      it('responds with 403 Forbidden if contact belongs to different user', () => {
+        const contactId = testContacts[0].id
+        const wrongUser = testUsers.find(user => user.id !== testContacts[0].user_id)
+        return supertest(app)
+          .get(`/api/contacts/${contactId}`)
+          .set('Authorization', helpers.makeAuthHeader(wrongUser))
+          .expect(403, { error: 'Contact belongs to a different user' })
+      })
+    })
+
+    context('Given contact with XSS attack content', () => {
+      const testUser = testUsers[0]
+      const {
+        maliciousContact,
+        expectedContact,
+      } = helpers.makeMaliciousContact(testUser)
+
+      beforeEach('insert malicious contact', () => {
+        return helpers.seedMaliciousContact(
+          db,
+          testUser,
+          maliciousContact,
+        )
+      })
+
+      it('removes XSS attack content', () => {
+        return supertest(app)
+          .get(`/api/contacts/${maliciousContact.id}`)
+          .set('Authorization', helpers.makeAuthHeader(testUser))
+          .expect(200)
+          .expect(res => {
+            expect(res.body.contact_name).to.eql(expectedContact.contact_name)
+            expect(res.body.contact_phone).to.eql(expectedContact.contact_phone)
+            expect(res.body.contact_email).to.eql(expectedContact.contact_email)
+            expect(res.body.contact_notes).to.eql(expectedContact.contact_notes)
+          })
       })
     })
   })

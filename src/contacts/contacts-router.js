@@ -49,4 +49,44 @@ contactsRouter
       .catch(next)
   })
 
+contactsRouter
+  .route('/:id')
+  .all(requireAuth)
+  .all(checkContactExists)
+  .all(checkContactBelongsToUser)
+  .get((req, res) => {
+    res.json(ContactsService.serializeContact(res.contact))
+  })
+
+async function checkContactExists(req, res, next) {
+  try {
+    const contact = await ContactsService.getContactById(
+      req.app.get('db'),
+      req.params.id
+    )
+    if (!contact) {
+      return res.status(404).json({
+        error: `Contact doesn't exist`
+      })
+    }
+    res.contact = contact
+    next()
+  } catch (error) {
+    next(error)
+  }
+}
+
+async function checkContactBelongsToUser(req, res, next) {
+  try {
+    if (res.contact.user_id !== req.user.id) {
+      return res.status(403).json({
+        error: 'Contact belongs to a different user'
+      })
+    }
+    next()
+  } catch (error) {
+    next(error)
+  }
+}
+
 module.exports = contactsRouter
