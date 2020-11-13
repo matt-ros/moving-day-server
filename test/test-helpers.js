@@ -113,16 +113,35 @@ function seedUsers(db, users) {
     )
 }
 
-function seedMovingdayTables(db, users, contacts) { // add other tables as created
+function seedMovingdayTables(db, users, contacts = [], lists = [], boxes = []) { // add other tables as created
   // use a transaction to group queries and auto rollback on failure
   return db.transaction(async trx => {
     await seedUsers(trx, users)
-    await trx.into('movingday_contacts').insert(contacts)
-    // update auto sequence to match forced id values
-    await trx.raw(
-      `SELECT setval('movingday_contacts_id_seq', ?)`,
-      [contacts[contacts.length - 1].id],
-    )
+    // only insert other tables if they are there, update sequence counters
+    if (contacts.length) {
+      await trx.into('movingday_contacts').insert(contacts)
+      // update auto sequence to match forced id values
+      await trx.raw(
+        `SELECT setval('movingday_contacts_id_seq', ?)`,
+        [contacts[contacts.length - 1].id],
+      )
+    }
+    if (lists.length) {
+      await trx.into('movingday_lists').insert(lists)
+      // update auto sequence to match forced id values
+      await trx.raw(
+        `SELECT setval('movingday_lists_id_seq', ?)`,
+        [lists[lists.length - 1].id],
+      )
+    }
+    if (boxes.length) {
+      await trx.into('movingday_boxes').insert(boxes)
+      // update auto sequence to match forced id values
+      await trx.raw(
+        `SELECT setval('movingday_boxes_id_seq', ?)`,
+        [boxes[boxes.length - 1].id],
+      )
+    }
   })
 }
 

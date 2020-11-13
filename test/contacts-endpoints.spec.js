@@ -148,7 +148,7 @@ describe('Contacts Endpoints', () => {
     })
   })
 
-  describe.only('GET /api/contacts/:id', () => {
+  describe('GET /api/contacts/:id', () => {
     context('Given no contacts', () => {
       beforeEach(() => helpers.seedUsers(db, testUsers))
 
@@ -215,6 +215,99 @@ describe('Contacts Endpoints', () => {
             expect(res.body.contact_email).to.eql(expectedContact.contact_email)
             expect(res.body.contact_notes).to.eql(expectedContact.contact_notes)
           })
+      })
+    })
+  })
+
+  describe('PATCH /api/contacts/:id', () => {
+    context('Given no contacts', () => {
+      beforeEach('insert users', () => helpers.seedUsers(db, testUsers))
+
+      it('responds with 404', () => {
+        const contactId = 123456
+        return supertest(app)
+          .patch(`/api/contacts/${contactId}`)
+          .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
+          .expect(404, { error: `Contact doesn't exist` })
+      })
+    })
+
+    context('Given there are contacts in the database', () => {
+      beforeEach('seed tables', () =>
+        helpers.seedMovingdayTables(
+          db,
+          testUsers,
+          testContacts
+        )
+      )
+
+      it('responds 204 and updates contact', () => {
+        const contactToUpdate = testContacts[0]
+        const updateFields = {
+          contact_name: 'updated contact_name',
+          contact_phone: 'updated phone',
+          contact_email: 'updated@testemail.com',
+          contact_notes: 'updated notes'
+        }
+        const expectedContact = {
+          ...contactToUpdate,
+          ...updateFields
+        }
+        return supertest(app)
+          .patch(`/api/contacts/${contactToUpdate.id}`)
+          .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
+          .send(updateFields)
+          .expect(204)
+          .then(res =>
+            supertest(app)
+              .get(`/api/contacts/${contactToUpdate.id}`)
+              .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
+              .expect(expectedContact)
+          )
+      })
+
+      it('responds with 403 Forbidden if contact belongs to different user', () => {
+        const contactId = testContacts[0].id
+        const wrongUser = testUsers.find(user => user.id !== testContacts[0].user_id)
+        return supertest(app)
+          .patch(`/api/contacts/${contactId}`)
+          .set('Authorization', helpers.makeAuthHeader(wrongUser))
+          .send({ contact_name: 'this request will fail' })
+          .expect(403, { error: 'Contact belongs to a different user' })
+      })
+
+      it('responds with 400 when no required fields supplied', () => {
+        const idToUpdate = testContacts[0].id
+        return supertest(app)
+          .patch(`/api/contacts/${idToUpdate}`)
+          .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
+          .send({ irrelevantField: 'foo' })
+          .expect(400, { error: `Request body must contain one of 'contact_name', 'contact_phone', 'contact_email', or 'contact_notes'` })
+      })
+
+      it('responds 204 when updating only a subset of fields', () => {
+        const contactToUpdate = testContacts[0]
+        const updateFields = {
+          contact_name: 'Updated contact_name'
+        }
+        const expectedContact = {
+          ...contactToUpdate,
+          ...updateFields
+        }
+        return supertest(app)
+          .patch(`/api/contacts/${contactToUpdate.id}`)
+          .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
+          .send({
+            ...updateFields,
+            fieldToIgnore: 'should not be in GET response'
+          })
+          .expect(204)
+          .then(res =>
+            supertest(app)
+              .get(`/api/contacts/${contactToUpdate.id}`)
+              .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
+              .expect(expectedContact)
+          )
       })
     })
   })

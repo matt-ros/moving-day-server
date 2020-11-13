@@ -58,6 +58,25 @@ contactsRouter
     res.json(ContactsService.serializeContact(res.contact))
   })
 
+  .patch(jsonBodyParser, (req, res, next) => {
+    const { contact_name, contact_phone, contact_email, contact_notes } = req.body
+    const updateFields = { contact_name, contact_phone, contact_email, contact_notes }
+    const numFields = Object.values(updateFields).filter(Boolean).length
+    if (numFields === 0) {
+      return res.status(400).json({ error: `Request body must contain one of 'contact_name', 'contact_phone', 'contact_email', or 'contact_notes'` })
+    }
+
+    ContactsService.updateContact(
+      req.app.get('db'),
+      req.params.id,
+      updateFields
+    )
+      .then(() => {
+        res.status(204).end()
+      })
+      .catch(next)
+  })
+
 async function checkContactExists(req, res, next) {
   try {
     const contact = await ContactsService.getContactById(

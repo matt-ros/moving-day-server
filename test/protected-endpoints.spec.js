@@ -51,6 +51,16 @@ describe('Protected Endpoints', () => {
       path: '/api/contacts',
       method: supertest(app).post
     },
+    {
+      name: 'GET /api/contacts/:id',
+      path: '/api/contacts/1',
+      method: supertest(app).get
+    },
+    {
+      name: 'PATCH /api/contacts/:id',
+      path: '/api/contacts/1',
+      method: supertest(app).patch
+    },
   ]
 
   protectedEndpoints.forEach(endpoint => {
