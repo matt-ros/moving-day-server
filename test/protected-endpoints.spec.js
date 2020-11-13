@@ -1,12 +1,11 @@
 const knex = require('knex')
-const supertest = require('supertest')
 const app = require('../src/app')
 const helpers = require('./test-helpers')
 
 describe('Protected Endpoints', () => {
   let db
 
-  const { // need to add fixtures for new databases when they are created
+  const {
     testUsers,
   } = helpers.makeMovingdayFixtures()
 
@@ -24,10 +23,10 @@ describe('Protected Endpoints', () => {
 
   afterEach('cleanup', () => helpers.cleanTables(db))
 
-  beforeEach('insert test data', () =>
-    helpers.seedUsers( // change to seed all tables when they are created
+  beforeEach('insert users', () =>
+    helpers.seedUsers(
       db,
-      testUsers
+      testUsers,
     )
   )
 
@@ -41,6 +40,31 @@ describe('Protected Endpoints', () => {
       name: 'GET /api/users',
       path: '/api/users',
       method: supertest(app).get
+    },
+    {
+      name: 'GET /api/contacts',
+      path: '/api/contacts',
+      method: supertest(app).get
+    },
+    {
+      name: 'POST /api/contacts',
+      path: '/api/contacts',
+      method: supertest(app).post
+    },
+    {
+      name: 'GET /api/contacts/:id',
+      path: '/api/contacts/1',
+      method: supertest(app).get
+    },
+    {
+      name: 'PATCH /api/contacts/:id',
+      path: '/api/contacts/1',
+      method: supertest(app).patch
+    },
+    {
+      name: 'DELETE /api/contacts/:id',
+      path: '/api/contacts/1',
+      method: supertest(app).delete
     },
   ]
 
