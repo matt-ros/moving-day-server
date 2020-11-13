@@ -61,6 +61,11 @@ describe('Protected Endpoints', () => {
       path: '/api/contacts/1',
       method: supertest(app).patch
     },
+    {
+      name: 'DELETE /api/contacts/:id',
+      path: '/api/contacts/1',
+      method: supertest(app).delete
+    },
   ]
 
   protectedEndpoints.forEach(endpoint => {

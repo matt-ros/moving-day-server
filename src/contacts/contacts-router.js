@@ -77,6 +77,17 @@ contactsRouter
       .catch(next)
   })
 
+  .delete((req, res, next) => {
+    ContactsService.deleteContact(
+      req.app.get('db'),
+      req.params.id
+    )
+      .then(() => {
+        res.status(204).end()
+      })
+      .catch(next)
+  })
+
 async function checkContactExists(req, res, next) {
   try {
     const contact = await ContactsService.getContactById(

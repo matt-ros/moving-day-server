@@ -311,4 +311,53 @@ describe('Contacts Endpoints', () => {
       })
     })
   })
+
+  describe('DELETE /api/contacts/:id', () => {
+    context('Given no contacts', () => {
+      beforeEach('insert users', () => helpers.seedUsers(db, testUsers))
+
+      it('responds with 404', () => {
+        const contactId = 123456
+        return supertest(app)
+          .delete(`/api/contacts/${contactId}`)
+          .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
+          .expect(404, { error: `Contact doesn't exist` })
+      })
+    })
+
+    context('Given there are contacts in the database', () => {
+      beforeEach('seed tables', () =>
+        helpers.seedMovingdayTables(
+          db,
+          testUsers,
+          testContacts
+        )
+      )
+
+      it('responds 204 and removes the contact', () => {
+        const contactToRemove = testContacts[2]
+        const user = testUsers.find(user => user.id === contactToRemove.user_id)
+        const expectedContacts = testContacts.filter(contact => contact.user_id === user.id && contact.id !== contactToRemove.id)
+        return supertest(app)
+          .delete(`/api/contacts/${contactToRemove.id}`)
+          .set('Authorization', helpers.makeAuthHeader(user))
+          .expect(204)
+          .then(res =>
+            supertest(app)  
+              .get(`/api/contacts`)
+              .set('Authorization', helpers.makeAuthHeader(user))
+              .expect(expectedContacts)
+          )
+      })
+
+      it('responds with 403 Forbidden if contact belongs to different user', () => {
+        const contactId = testContacts[0].id
+        const wrongUser = testUsers.find(user => user.id !== testContacts[0].user_id)
+        return supertest(app)
+          .delete(`/api/contacts/${contactId}`)
+          .set('Authorization', helpers.makeAuthHeader(wrongUser))
+          .expect(403, { error: 'Contact belongs to a different user' })
+      })
+    })
+  })
 })
