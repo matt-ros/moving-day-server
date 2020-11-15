@@ -163,7 +163,7 @@ describe('Lists Endpoints', () => {
         )
       )
 
-      it('responds with 200 and specified list if it belings to logged in user', () => {
+      it('responds with 200 and specified list if it belongs to logged in user', () => {
         const listId = testLists[0].id
         const expectedList = testLists[0]
         return supertest(app)
@@ -233,7 +233,7 @@ describe('Lists Endpoints', () => {
         )
       )
 
-      it('responds 204 and updates list', () => {
+      it('responds 204 and updates list if it belongs to logged in user', () => {
         const listToUpdate = testLists[0]
         const updateFields = {
           list_name: 'updated list_name',
@@ -298,6 +298,56 @@ describe('Lists Endpoints', () => {
               .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
               .expect(expectedList)
           )
+      })
+    })
+  })
+
+  describe('DELETE /api/lists/:id', () => {
+    context('Given no lists', () => {
+      beforeEach('insert users', () => helpers.seedUsers(db, testUsers))
+
+      it('responds with 404', () => {
+        const listId = 123456
+        return supertest(app)
+          .delete(`/api/lists/${listId}`)
+          .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
+          .expect(404, { error: `List doesn't exist` })
+      })
+    })
+
+    context('Given there are lists in the database', () => {
+      beforeEach('seed tables', () =>
+        helpers.seedMovingdayTables(
+          db,
+          testUsers,
+          [],
+          testLists
+        )
+      )
+
+      it('responds 204 and removes the list if it belongs to logged in user', () => {
+        const listToRemove = testLists[2]
+        const user = testUsers.find(user => user.id === listToRemove.user_id)
+        const expectedLists = testLists.filter(list => list.user_id === user.id && list.id !== listToRemove.id)
+        return supertest(app)
+          .delete(`/api/lists/${listToRemove.id}`)
+          .set('Authorization', helpers.makeAuthHeader(user))
+          .expect(204)
+          .then(res =>
+            supertest(app)
+              .get(`/api/lists`)
+              .set('Authorization', helpers.makeAuthHeader(user))
+              .expect(expectedLists)
+          )
+      })
+
+      it('responds 403 Forbidden if list belongs to different user', () => {
+        const listId = testLists[0].id
+        const wrongUser = testUsers.find(user => user.id !== testLists[0].user_id)
+        return supertest(app)
+          .delete(`/api/lists/${listId}`)
+          .set('Authorization', helpers.makeAuthHeader(wrongUser))
+          .expect(403, { error: 'List belongs to a different user' })
       })
     })
   })
