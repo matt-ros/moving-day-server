@@ -2,7 +2,8 @@ BEGIN;
 
 TRUNCATE
   movingday_users,
-  movingday_contacts
+  movingday_contacts,
+  movingday_lists
   RESTART IDENTITY CASCADE;
 
 INSERT INTO movingday_users (
@@ -47,6 +48,27 @@ INSERT INTO movingday_contacts (
     'jim@jim.com',
     'Some notes about Jim',
     2
+  );
+
+INSERT INTO movingday_lists (
+  list_name,
+  list_items,
+  user_id
+) VALUES
+  (
+    'Matt''s To-Do',
+    '{ "Pack video games": true, "Buy tape": false, "Call movers": true }'::json,
+    1
+  ),
+  (
+    'Mel''s To-Do',
+    '{ "Play with Leko": false, "Find tape gun": false, "Make coffee": true }'::json,
+    2
+  ),
+  (
+    'Test list with no items',
+    null,
+    1
   );
 
 COMMIT;
