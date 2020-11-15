@@ -87,4 +87,73 @@ describe('Boxes Endpoints', () => {
       })
     })
   })
+
+  describe('POST /api/boxes', () => {
+    beforeEach('insert users', () => helpers.seedUsers(db, testUsers))
+
+    context('Unhappy path', () => {
+      it(`responds with 400 when 'box_name' is missing`, () => {
+        const newBoxMissingName = {
+          ...testBoxes[0],
+          box_name: null
+        }
+        return supertest(app)
+          .post('/api/boxes')
+          .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
+          .send(newBoxMissingName)
+          .expect(400, { error: `Missing 'box_name' in request body` })
+      })
+    })
+
+    context('Happy path', () => {
+      it('responds 201, serialized box', () => {
+        const newBox = {
+          box_name: 'test box_name',
+          coming_from: 'test coming_from',
+          going_to: 'test going_to',
+          getting_there: 'test getting_there',
+          box_notes: 'test box_notes',
+          inventory: ['test item 1', 'test item 2'],
+          user_id: testUsers[0].id
+        }
+        return supertest(app)
+          .post('/api/boxes')
+          .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
+          .send(newBox)
+          .expect(201)
+          .expect(res => {
+            expect(res.body).to.have.property('id')
+            expect(res.body.box_name).to.eql(newBox.box_name)
+            expect(res.body.coming_from).to.eql(newBox.coming_from)
+            expect(res.body.going_to).to.eql(newBox.going_to)
+            expect(res.body.getting_there).to.eql(newBox.getting_there)
+            expect(res.body.box_notes).to.eql(newBox.box_notes)
+            expect(res.body.inventory).to.eql(newBox.inventory)
+            expect(res.body.user_id).to.eql(newBox.user_id)
+            const expectedDate = new Date().toLocaleString()
+            const actualDate = new Date(res.body.date_created).toLocaleString()
+            expect(actualDate).to.eql(expectedDate)
+          })
+          .expect(res =>
+            db
+              .from('movingday_boxes')
+              .select('*')
+              .where({ id: res.body.id })
+              .first()
+              .then(row => {
+                expect(row.box_name).to.eql(newBox.box_name)
+                expect(row.coming_from).to.eql(newBox.coming_from)
+                expect(row.going_to).to.eql(newBox.going_to)
+                expect(row.getting_there).to.eql(newBox.getting_there)
+                expect(row.box_notes).to.eql(newBox.box_notes)
+                expect(row.inventory).to.eql(newBox.inventory)
+                expect(row.user_id).to.eql(newBox.user_id)
+                const expectedDbDate = new Date().toLocaleString()
+                const actualDbDate = new Date(row.date_created).toLocaleString()
+                expect(actualDbDate).to.eql(expectedDbDate)
+              })
+          )
+      })
+    })
+  })
 })

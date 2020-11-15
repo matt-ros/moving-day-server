@@ -6,6 +6,7 @@ CREATE TABLE movingday_boxes (
   getting_there TEXT,
   box_notes TEXT,
   inventory TEXT[],
+  date_created TIMESTAMPTZ DEFAULT now() NOT NULL,
   user_id INTEGER
     REFERENCES movingday_users(id) ON DELETE CASCADE NOT NULL
 );

@@ -42,6 +42,7 @@ const BoxesService = {
       getting_there: xss(box.getting_there),
       box_notes: xss(box.box_notes),
       inventory: box.inventory === null ? [] : box.inventory.map(item => xss(item)),
+      date_created: new Date(box.date_created),
       user_id: box.user_id
     }
   },

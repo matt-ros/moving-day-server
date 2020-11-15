@@ -83,7 +83,7 @@ describe('Lists Endpoints', () => {
     })
   })
 
-  describe('POST /api/contacts', () => {
+  describe('POST /api/lists', () => {
     beforeEach('insert users', () => helpers.seedUsers(db, testUsers))
 
     context('Unhappy path', () => {

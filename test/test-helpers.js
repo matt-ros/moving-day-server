@@ -130,6 +130,7 @@ function makeBoxesArray(users) {
         'test item 2',
         'test item 3'
       ],
+      date_created: '2029-01-22T16:28:32.615Z',
       user_id: users[0].id
     },
     {
@@ -144,6 +145,7 @@ function makeBoxesArray(users) {
         'test item 2',
         'test item 3'
       ],
+      date_created: '2029-01-22T16:28:32.615Z',
       user_id: users[0].id
     },
     {
@@ -158,6 +160,7 @@ function makeBoxesArray(users) {
         'test item 2',
         'test item 3'
       ],
+      date_created: '2029-01-22T16:28:32.615Z',
       user_id: users[3].id
     },
     {
@@ -172,6 +175,7 @@ function makeBoxesArray(users) {
         'test item 2',
         'test item 3'
       ],
+      date_created: '2029-01-22T16:28:32.615Z',
       user_id: users[2].id
     },
   ]
