@@ -83,5 +83,60 @@ describe('Lists Endpoints', () => {
     })
   })
 
-  
+  describe('POST /api/contacts', () => {
+    beforeEach('insert users', () => helpers.seedUsers(db, testUsers))
+
+    context('Unhappy path', () => {
+      it(`responds with 400 when 'list_name' is missing`, () => {
+        const newListMissingName = {
+          ...testLists[0],
+          list_name: null
+        }
+        return supertest(app)
+          .post('/api/lists')
+          .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
+          .send(newListMissingName)
+          .expect(400, { error: `Missing 'list_name' in request body` })
+      })
+    })
+
+    context('Happy path', () => {
+      it('responds 201, serialized list', () => {
+        const newList = {
+          list_name: 'test list name',
+          list_items: {'test item 1': true, 'test item 2': false},
+          user_id: testUsers[0].id
+        }
+        return supertest(app)
+          .post('/api/lists')
+          .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
+          .send(newList)
+          .expect(201)
+          .expect(res => {
+            expect(res.body).to.have.property('id')
+            expect(res.body.list_name).to.eql(newList.list_name)
+            expect(res.body.list_items).to.eql(newList.list_items)
+            expect(res.body.user_id).to.eql(newList.user_id)
+            const expectedDate = new Date().toLocaleString()
+            const acutalDate = new Date(res.body.date_created).toLocaleString()
+            expect(acutalDate).to.eql(expectedDate)
+          })
+          .expect(res =>
+            db
+              .from('movingday_lists')
+              .select('*')
+              .where({ id: res.body.id })
+              .first()
+              .then(row => {
+                expect(row.list_name).to.eql(newList.list_name)
+                expect(row.list_items).to.eql(newList.list_items)
+                expect(row.user_id).to.eql(newList.user_id)
+                const expectedDbDate = new Date().toLocaleString()
+                const actualDbDate = new Date(row.date_created).toLocaleString()
+                expect(actualDbDate).to.eql(expectedDbDate)
+              })
+          )
+      })
+    })
+  })
 })
