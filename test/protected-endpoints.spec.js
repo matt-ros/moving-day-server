@@ -76,6 +76,11 @@ describe('Protected Endpoints', () => {
       path: '/api/lists',
       method: supertest(app).post
     },
+    {
+      name: 'GET /api/lists/:id',
+      path: '/api/lists/1',
+      method: supertest(app).get
+    },
   ]
 
   protectedEndpoints.forEach(endpoint => {

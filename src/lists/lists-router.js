@@ -46,4 +46,40 @@ listsRouter
       .catch(next)
   })
 
+listsRouter
+  .route('/:id')
+  .all(requireAuth)
+  .all(checkListExists)
+  .all(checkListBelongsToUser)
+  .get((req, res) => {
+    res.json(ListsService.serializeList(res.list))
+  })
+
+async function checkListExists(req, res, next) {
+  try {
+    const list = await ListsService.getListById(
+      req.app.get('db'),
+      req.params.id
+    )
+    if (!list) {
+      return res.status(404).json({
+        error: `List doesn't exist`
+      })
+    }
+    res.list = list
+    next()
+  } catch (error) {
+    next(error)
+  }
+}
+
+async function checkListBelongsToUser(req, res, next) {
+  if (res.list.user_id !== req.user.id) {
+    return res.status(403).json({
+      error: 'List belongs to a different user'
+    })
+  }
+  next()
+}
+
 module.exports = listsRouter

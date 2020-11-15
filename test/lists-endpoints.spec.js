@@ -139,4 +139,74 @@ describe('Lists Endpoints', () => {
       })
     })
   })
+
+  describe('GET /api/lists/:id', () => {
+    context('Given no lists', () => {
+      beforeEach(() => helpers.seedUsers(db, testUsers))
+
+      it('responds with 404', () => {
+        const listId = 123456
+        return supertest(app)
+          .get(`/api/lists/${listId}`)
+          .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
+          .expect(404, { error: `List doesn't exist` })
+      })
+    })
+
+    context('Given there are lists in the database', () => {
+      beforeEach('seed tables', () => 
+        helpers.seedMovingdayTables(
+          db,
+          testUsers,
+          [],
+          testLists
+        )
+      )
+
+      it('responds with 200 and specified list if it belings to logged in user', () => {
+        const listId = testLists[0].id
+        const expectedList = testLists[0]
+        return supertest(app)
+          .get(`/api/lists/${listId}`)
+          .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
+          .expect(200, expectedList)
+      })
+
+      it('responds with 403 Forbidden if list belongs to different user', () => {
+        const listId = testLists[0].id
+        const wrongUser = testUsers.find(user => user.id !== testLists[0].user_id)
+        return supertest(app)
+          .get(`/api/lists/${listId}`)
+          .set('Authorization', helpers.makeAuthHeader(wrongUser))
+          .expect(403, { error: 'List belongs to a different user' })
+      })
+    })
+
+    context('Given list with XSS attack content', () => {
+      const testUser = testUsers[0]
+      const {
+        maliciousList,
+        expectedList
+      } = helpers.makeMaliciousList(testUser)
+
+      beforeEach('insert malicious list', () => {
+        return helpers.seedMaliciousList(
+          db,
+          testUser,
+          maliciousList
+        )
+      })
+
+      it('removes XSS attack content', () => {
+        return supertest(app)
+          .get(`/api/lists/${maliciousList.id}`)
+          .set('Authorization', helpers.makeAuthHeader(testUser))
+          .expect(200)
+          .expect(res => {
+            expect(res.body.list_name).to.eql(expectedList.list_name)
+            expect(res.body.list_items).to.eql(expectedList.list_items)
+          })
+      })
+    })
+  })
 })
