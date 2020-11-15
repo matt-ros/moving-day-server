@@ -7,6 +7,7 @@ const { NODE_ENV, CLIENT_ORIGIN } = require('./config');
 const authRouter = require('./auth/auth-router');
 const usersRouter = require('./users/users-router');
 const contactsRouter = require('./contacts/contacts-router');
+const listsRouter = require('./lists/lists-router');
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use(
 app.use('/api/auth', authRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/contacts', contactsRouter);
+app.use('/api/lists', listsRouter)
 
 app.use(function errorHandler(error, req, res, next) {
   let response;

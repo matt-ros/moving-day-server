@@ -83,17 +83,52 @@ function makeContactsArray(users) {
   ]
 }
 
+function makeListsArray(users) {
+  return [
+    {
+      id: 1,
+      list_name: `matt's to-do`,
+      list_items: {"test item 1": true, "test item 2": false, "test item 3": true},
+      date_created: '2029-01-22T16:28:32.615Z',
+      user_id: users[0].id
+    },
+    {
+      id: 2,
+      list_name: `test list 2`,
+      list_items: {"test item 1": true, "test item 2": false, "test item 3": true},
+      date_created: '2029-01-22T16:28:32.615Z',
+      user_id: users[2].id
+    },
+    {
+      id: 3,
+      list_name: `test list 3`,
+      list_items: {"test item 1": true, "test item 2": false, "test item 3": true},
+      date_created: '2029-01-22T16:28:32.615Z',
+      user_id: users[1].id
+    },
+    {
+      id: 4,
+      list_name: `test list 4`,
+      list_items: {"test item 1": true, "test item 2": false, "test item 3": true},
+      date_created: '2029-01-22T16:28:32.615Z',
+      user_id: users[0].id
+    },
+  ]
+}
+
 function makeMovingdayFixtures() {
   const testUsers = makeUsersArray()
   const testContacts = makeContactsArray(testUsers)
-  return { testUsers, testContacts }
+  const testLists = makeListsArray(testUsers)
+  return { testUsers, testContacts, testLists }
 }
 
 function cleanTables(db) {
   return db.raw(
     `TRUNCATE
       movingday_users,
-      movingday_contacts
+      movingday_contacts,
+      movingday_lists
       RESTART IDENTITY CASCADE`
   )
 }
@@ -198,6 +233,25 @@ function makeMaliciousContact(user) {
   }
 }
 
+function makeMaliciousList(user) {
+  const maliciousList = {
+    id: 911,
+    list_name: 'Naughty naughty very naughty <script>alert("xss");</script>',
+    list_items: { 'Bad image <img src="https://url.to.file.which/does-not.exist" onerror="alert(document.cookie);">. But not <strong>all</strong> bad.': true },
+    date_created: new Date().toISOString(),
+    user_id: user.id
+  }
+  const expectedList = {
+    ...maliciousList,
+    list_name: 'Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;',
+    list_items: { 'Bad image <img src="https://url.to.file.which/does-not.exist">. But not <strong>all</strong> bad.': true }
+  }
+  return {
+    maliciousList,
+    expectedList
+  }
+}
+
 function seedMaliciousUser(db, user) {
   return db.into('movingday_users').insert(user)
 }
@@ -211,9 +265,19 @@ function seedMaliciousContact(db, user, contact) {
   )
 }
 
+function seedMaliciousList(db, user, list) {
+  return seedUsers(db, [user])
+    .then(() =>
+      db
+        .into('movingday_lists')
+        .insert([list])
+    )
+}
+
 module.exports = {
   makeUsersArray,
   makeContactsArray,
+  makeListsArray,
   makeMovingdayFixtures,
   cleanTables,
   seedUsers,
@@ -223,4 +287,6 @@ module.exports = {
   seedMaliciousUser,
   makeMaliciousContact,
   seedMaliciousContact,
+  makeMaliciousList,
+  seedMaliciousList,
 }
