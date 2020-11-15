@@ -209,4 +209,96 @@ describe('Lists Endpoints', () => {
       })
     })
   })
+
+  describe('PATCH /api/lists/:id', () => {
+    context('Given no lists', () => {
+      beforeEach('insert users', () => helpers.seedUsers(db, testUsers))
+
+      it('responds with 404', () => {
+        const listId = 123456
+        return supertest(app)
+          .patch(`/api/lists/${listId}`)
+          .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
+          .expect(404, { error: `List doesn't exist` })
+      })
+    })
+
+    context('Given there are lists in the database', () => {
+      beforeEach('seed tables', () =>
+        helpers.seedMovingdayTables(
+          db,
+          testUsers,
+          [],
+          testLists
+        )
+      )
+
+      it('responds 204 and updates list', () => {
+        const listToUpdate = testLists[0]
+        const updateFields = {
+          list_name: 'updated list_name',
+          list_items: { 'updated list_item': false, 'another updated item': true }
+        }
+        const expectedList = {
+          ...listToUpdate,
+          ...updateFields
+        }
+        return supertest(app)
+          .patch(`/api/lists/${listToUpdate.id}`)
+          .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
+          .send(updateFields)
+          .expect(204)
+          .then(res =>
+            supertest(app)
+              .get(`/api/lists/${listToUpdate.id}`)
+              .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
+              .expect(expectedList)
+          )
+      })
+
+      it('responds with 403 Forbidden if list belongs to a different user', () => {
+        const listId = testLists[0].id
+        const wrongUser = testUsers.find(user => user.id !== testLists[0].user_id)
+        return supertest(app)
+          .patch(`/api/lists/${listId}`)
+          .set('Authorization', helpers.makeAuthHeader(wrongUser))
+          .send({ list_name: 'this request will fail' })
+          .expect(403, { error: 'List belongs to a different user' })
+      })
+
+      it('responds with 400 when no required fields supplied', () => {
+        const idToUpdate = testLists[0].id
+        return supertest(app)
+          .patch(`/api/lists/${idToUpdate}`)
+          .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
+          .send({ irrelevantField: 'foo' })
+          .expect(400, { error: `Request body must contain 'list_name' or 'list_items'` })
+      })
+
+      it('responds 204 when updating only a subset of fields', () => {
+        const listToUpdate = testLists[0]
+        const updateFields = {
+          list_name: 'updated list name'
+        }
+        const expectedList = {
+          ...listToUpdate,
+          ...updateFields
+        }
+        return supertest(app)
+          .patch(`/api/lists/${listToUpdate.id}`)
+          .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
+          .send({
+            ...updateFields,
+            fieldToIgnore: 'should not be in GET response'
+          })
+          .expect(204)
+          .then(res =>
+            supertest(app)
+              .get(`/api/lists/${listToUpdate.id}`)
+              .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
+              .expect(expectedList)
+          )
+      })
+    })
+  })
 })

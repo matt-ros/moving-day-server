@@ -55,6 +55,25 @@ listsRouter
     res.json(ListsService.serializeList(res.list))
   })
 
+  .patch(jsonBodyParser, (req, res, next) => {
+    const { list_name, list_items } = req.body
+    const updateFields = { list_name, list_items }
+    const numFields = Object.values(updateFields).filter(Boolean).length
+    if (numFields === 0) {
+      return res.status(400).json({ error: `Request body must contain 'list_name' or 'list_items'` })
+    }
+
+    ListsService.updateList(
+      req.app.get('db'),
+      req.params.id,
+      updateFields
+    )
+      .then(() => {
+        res.status(204).end()
+      })
+      .catch(next)
+  })
+
 async function checkListExists(req, res, next) {
   try {
     const list = await ListsService.getListById(
