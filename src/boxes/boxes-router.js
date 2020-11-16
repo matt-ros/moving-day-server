@@ -50,4 +50,40 @@ boxesRouter
       .catch(next)
   })
 
+boxesRouter
+  .route('/:id')
+  .all(requireAuth)
+  .all(checkBoxExists)
+  .all(checkBoxBelongsToUser)
+  .get((req, res) => {
+    res.json(BoxesService.serializeBox(res.box))
+  })
+
+async function checkBoxExists(req, res, next) {
+  try {
+    const box = await BoxesService.getBoxById(
+      req.app.get('db'),
+      req.params.id
+    )
+    if (!box) {
+      return res.status(404).json({
+        error: `Box doesn't exist`
+      })
+    }
+    res.box = box
+    next()
+  } catch (error) {
+    next(error)
+  }
+}
+
+async function checkBoxBelongsToUser(req, res, next) {
+  if (res.box.user_id !== req.user.id) {
+    return res.status(403).json({
+      error: 'Box belongs to a different user'
+    })
+  }
+  next()
+}
+
   module.exports = boxesRouter

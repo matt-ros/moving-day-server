@@ -330,6 +330,7 @@ function makeMaliciousBox(user) {
     inventory: [
       `Bad image <img src="https://url.to.file.which/does-not.exist" onerror="alert(document.cookie);">. But not <strong>all</strong> bad.`
     ],
+    date_created: new Date().toISOString(),
     user_id: user.id
   }
   const expectedBox = {

@@ -156,4 +156,79 @@ describe('Boxes Endpoints', () => {
       })
     })
   })
+
+  describe('GET /api/boxes/:id', () => {
+    context('Given no boxes', () => {
+      beforeEach('seed users', () => helpers.seedUsers(db, testUsers))
+
+      it('responds with 404', () => {
+        const boxId = 123456
+        return supertest(app)
+          .get(`/api/boxes/${boxId}`)
+          .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
+          .expect(404, { error: `Box doesn't exist` })
+      })
+    })
+
+    context('Given there are boxes in the database', () => {
+      beforeEach('seed tables', () => 
+        helpers.seedMovingdayTables(
+          db,
+          testUsers,
+          [],
+          [],
+          testBoxes
+        )
+      )
+
+      it('responds with 200 and specified box if it belongs to logged in user', () => {
+        const boxId = testBoxes[0].id
+        const expectedBox = testBoxes[0]
+        return supertest(app)
+          .get(`/api/boxes/${boxId}`)
+          .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
+          .expect(200, expectedBox)
+      })
+
+      it('responds with 403 Forbidden if list belongs to a different user', () => {
+        const boxId = testBoxes[0].id
+        const wrongUser = testUsers.find(user => user.id !== testBoxes[0].user_id)
+        return supertest(app)
+          .get(`/api/boxes/${boxId}`)
+          .set('Authorization', helpers.makeAuthHeader(wrongUser))
+          .expect(403, { error: 'Box belongs to a different user' })
+      })
+    })
+
+    context('Given box with XSS attack content', () => {
+      const testUser = testUsers[0]
+      const {
+        maliciousBox,
+        expectedBox
+      } = helpers.makeMaliciousBox(testUser)
+
+      beforeEach('insert malicious box', () => {
+        return helpers.seedMaliciousBox(
+          db,
+          testUser,
+          maliciousBox
+        )
+      })
+
+      it('removes XSS attack content', () => {
+        return supertest(app)
+          .get(`/api/boxes/${maliciousBox.id}`)
+          .set('Authorization', helpers.makeAuthHeader(testUser))
+          .expect(200)
+          .expect(res => {
+            expect(res.body.box_name).to.eql(expectedBox.box_name)
+            expect(res.body.coming_from).to.eql(expectedBox.coming_from)
+            expect(res.body.going_to).to.eql(expectedBox.going_to)
+            expect(res.body.getting_there).to.eql(expectedBox.getting_there)
+            expect(res.body.box_notes).to.eql(expectedBox.box_notes)
+            expect(res.body.inventory).to.eql(expectedBox.inventory)
+          })
+      })
+    })
+  })
 })
