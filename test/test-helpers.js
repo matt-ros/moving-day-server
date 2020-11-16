@@ -116,11 +116,77 @@ function makeListsArray(users) {
   ]
 }
 
+function makeBoxesArray(users) {
+  return [
+    {
+      id: 1,
+      box_name: 'test box 1',
+      coming_from: 'test origin 1',
+      going_to: 'test destination 1',
+      getting_there: 'test transportation 1',
+      box_notes: 'test notes 1',
+      inventory: [
+        'test item 1',
+        'test item 2',
+        'test item 3'
+      ],
+      date_created: '2029-01-22T16:28:32.615Z',
+      user_id: users[0].id
+    },
+    {
+      id: 2,
+      box_name: 'test box 2',
+      coming_from: 'test origin 2',
+      going_to: 'test destination 2',
+      getting_there: 'test transportation 2',
+      box_notes: 'test notes 2',
+      inventory: [
+        'test item 1',
+        'test item 2',
+        'test item 3'
+      ],
+      date_created: '2029-01-22T16:28:32.615Z',
+      user_id: users[0].id
+    },
+    {
+      id: 3,
+      box_name: 'test box 3',
+      coming_from: 'test origin 3',
+      going_to: 'test destination 3',
+      getting_there: 'test transportation 3',
+      box_notes: 'test notes 3',
+      inventory: [
+        'test item 1',
+        'test item 2',
+        'test item 3'
+      ],
+      date_created: '2029-01-22T16:28:32.615Z',
+      user_id: users[3].id
+    },
+    {
+      id: 4,
+      box_name: 'test box 4',
+      coming_from: 'test origin 4',
+      going_to: 'test destination 4',
+      getting_there: 'test transportation 4',
+      box_notes: 'test notes 4',
+      inventory: [
+        'test item 1',
+        'test item 2',
+        'test item 3'
+      ],
+      date_created: '2029-01-22T16:28:32.615Z',
+      user_id: users[2].id
+    },
+  ]
+}
+
 function makeMovingdayFixtures() {
   const testUsers = makeUsersArray()
   const testContacts = makeContactsArray(testUsers)
   const testLists = makeListsArray(testUsers)
-  return { testUsers, testContacts, testLists }
+  const testBoxes = makeBoxesArray(testUsers)
+  return { testUsers, testContacts, testLists, testBoxes }
 }
 
 function cleanTables(db) {
@@ -128,7 +194,8 @@ function cleanTables(db) {
     `TRUNCATE
       movingday_users,
       movingday_contacts,
-      movingday_lists
+      movingday_lists,
+      movingday_boxes
       RESTART IDENTITY CASCADE`
   )
 }
@@ -252,6 +319,37 @@ function makeMaliciousList(user) {
   }
 }
 
+function makeMaliciousBox(user) {
+  const maliciousBox = {
+    id: 911,
+    box_name: 'Naughty naughty very naughty <script>alert("xss");</script>',
+    coming_from: `Bad image <img src="https://url.to.file.which/does-not.exist" onerror="alert(document.cookie);">. But not <strong>all</strong> bad.`,
+    going_to: `Bad image <img src="https://url.to.file.which/does-not.exist" onerror="alert(document.cookie);">. But not <strong>all</strong> bad.`,
+    getting_there: 'Naughty naughty very naughty <script>alert("xss");</script>',
+    box_notes: 'Naughty naughty very naughty <script>alert("xss");</script>',
+    inventory: [
+      `Bad image <img src="https://url.to.file.which/does-not.exist" onerror="alert(document.cookie);">. But not <strong>all</strong> bad.`
+    ],
+    date_created: new Date().toISOString(),
+    user_id: user.id
+  }
+  const expectedBox = {
+    ...maliciousBox,
+    box_name: 'Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;',
+    coming_from: `Bad image <img src="https://url.to.file.which/does-not.exist">. But not <strong>all</strong> bad.`,
+    going_to: `Bad image <img src="https://url.to.file.which/does-not.exist">. But not <strong>all</strong> bad.`,
+    getting_there: 'Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;',
+    box_notes: 'Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;',
+    inventory: [
+      `Bad image <img src="https://url.to.file.which/does-not.exist">. But not <strong>all</strong> bad.`
+    ]
+  }
+  return {
+    maliciousBox,
+    expectedBox
+  }
+}
+
 function seedMaliciousUser(db, user) {
   return db.into('movingday_users').insert(user)
 }
@@ -274,10 +372,20 @@ function seedMaliciousList(db, user, list) {
     )
 }
 
+function seedMaliciousBox(db, user, box) {
+  return seedUsers(db, [user])
+    .then(() => 
+      db
+        .into('movingday_boxes')
+        .insert([box])
+    )
+}
+
 module.exports = {
   makeUsersArray,
   makeContactsArray,
   makeListsArray,
+  makeBoxesArray,
   makeMovingdayFixtures,
   cleanTables,
   seedUsers,
@@ -289,4 +397,6 @@ module.exports = {
   seedMaliciousContact,
   makeMaliciousList,
   seedMaliciousList,
+  makeMaliciousBox,
+  seedMaliciousBox,
 }

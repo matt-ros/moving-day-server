@@ -3,7 +3,8 @@ BEGIN;
 TRUNCATE
   movingday_users,
   movingday_contacts,
-  movingday_lists
+  movingday_lists,
+  movingday_boxes
   RESTART IDENTITY CASCADE;
 
 INSERT INTO movingday_users (
@@ -69,6 +70,74 @@ INSERT INTO movingday_lists (
     'Test list with no items',
     null,
     1
+  );
+
+INSERT INTO movingday_boxes (
+  box_name,
+  coming_from,
+  going_to,
+  getting_there,
+  box_notes,
+  inventory,
+  user_id
+) VALUES
+  (
+    'Kitchen Box 1',
+    'Kitchen',
+    'Garage',
+    'Moving Truck',
+    'Fragile',
+    ARRAY[
+      'Plates',
+      'Bowls'
+    ],
+    1
+  ),
+  (
+    'Kitchen Box 2',
+    'Kitchen',
+    'Kitchen',
+    'Matt''s Car',
+    null,
+    ARRAY[
+      'Silverware'
+    ],
+    1
+  ),
+  (
+    'Living Room Box 1',
+    'Living Room',
+    'Storage Unit',
+    'Moving Truck',
+    null,
+    ARRAY[
+      'Games',
+      'Books'
+    ],
+    1
+  ),
+  (
+    'Kitchen Box 1',
+    'Kitchen',
+    'Kitchen',
+    'Moving Truck',
+    'Fragile',
+    ARRAY[
+      'Bowls',
+      'Silverware'
+    ],
+    2
+  ),
+  (
+    'Storage Box 1',
+    'Storage Unit',
+    'Storage Unit',
+    'Moving Truck',
+    null,
+    ARRAY[
+      'Clothes'
+    ],
+    2
   );
 
 COMMIT;

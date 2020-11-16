@@ -91,6 +91,31 @@ describe('Protected Endpoints', () => {
       path: '/api/lists/1',
       method: supertest(app).delete
     },
+    {
+      name: 'GET /api/boxes',
+      path: '/api/boxes',
+      method: supertest(app).get
+    },
+    {
+      name: 'POST /api/boxes',
+      path: '/api/boxes',
+      method: supertest(app).post
+    },
+    {
+      name: 'GET /api/boxes/:id',
+      path: '/api/boxes/1',
+      method: supertest(app).get
+    },
+    {
+      name: 'PATCH /api/boxes/:id',
+      path: '/api/boxes/1',
+      method: supertest(app).patch
+    },
+    {
+      name: 'DELETE /api/boxes/:id',
+      path: '/api/boxes/1',
+      method: supertest(app).delete
+    },
   ]
 
   protectedEndpoints.forEach(endpoint => {
