@@ -231,4 +231,106 @@ describe('Boxes Endpoints', () => {
       })
     })
   })
+
+  describe('PATCH /api/boxes/:id', () => {
+    context('Given no boxes', () => {
+      beforeEach('insert users', () => helpers.seedUsers(db, testUsers))
+
+      it('responds with 404', () => {
+        const boxId = 123456
+        return supertest(app)
+          .patch(`/api/boxes/${boxId}`)
+          .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
+          .expect(404, { error: `Box doesn't exist` })
+      })
+    })
+
+    context('Given there are boxes in the database', () => {
+      beforeEach('seed tables', () =>
+        helpers.seedMovingdayTables(
+          db,
+          testUsers,
+          [],
+          [],
+          testBoxes
+        )
+      )
+
+      it('responds 204 and updates box if it belongs to the logged in user', () => {
+        const boxToUpdate = testBoxes[0]
+        const updateFields = {
+          box_name: 'updated box_name',
+          coming_from: 'updated coming_from',
+          going_to: 'updated going_to',
+          getting_there: 'updated getting_there',
+          box_notes: 'updated box_notes',
+          inventory: [
+            'updated item 1',
+            'updated item 2'
+          ]
+        }
+        const expectedBox = {
+          ...boxToUpdate,
+          ...updateFields
+        }
+        return supertest(app)
+          .patch(`/api/boxes/${boxToUpdate.id}`)
+          .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
+          .send(updateFields)
+          .expect(204)
+          .then(res =>
+            supertest(app)
+              .get(`/api/boxes/${boxToUpdate.id}`)
+              .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
+              .expect(expectedBox)
+          )
+      })
+
+      it('responds with 403 Forbidden if list belongs to a different user', () => {
+        const boxId = testBoxes[0].id
+        const wrongUser = testUsers.find(user => user.id !== testBoxes[0].user_id)
+        return supertest(app)
+          .patch(`/api/boxes/${boxId}`)
+          .set('Authorization', helpers.makeAuthHeader(wrongUser))
+          .send({ box_name: 'this request will fail' })
+          .expect(403, { error: 'Box belongs to a different user' })
+      })
+
+      it('responds with 400 when no required fields supplied', () => {
+        const idToUpdate = testBoxes[0].id
+        return supertest(app)
+          .patch(`/api/boxes/${idToUpdate}`)
+          .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
+          .send({ irrelevantField: 'foo' })
+          .expect(400, {
+            error: `Request body must contain one of 'box_name', 'coming_from', 'going_to', 'getting_there', 'box_notes', or 'inventory'`
+          })
+      })
+
+      it('responds 204 when updating only a subset of fields', () => {
+        const boxToUpdate = testBoxes[0]
+        const updateFields = {
+          getting_there: 'updated getting_there'
+        }
+        const expectedBox = {
+          ...boxToUpdate,
+          ...updateFields
+        }
+        return supertest(app)
+          .patch(`/api/boxes/${boxToUpdate.id}`)
+          .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
+          .send({
+            ...updateFields,
+            fieldToIgnore: 'should not be in GET response'
+          })
+          .expect(204)
+          .then(res =>
+            supertest(app)
+              .get(`/api/boxes/${boxToUpdate.id}`)
+              .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
+              .expect(expectedBox)
+          )
+      })
+    })
+  })
 })

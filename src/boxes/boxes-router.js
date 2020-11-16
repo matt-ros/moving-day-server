@@ -59,6 +59,27 @@ boxesRouter
     res.json(BoxesService.serializeBox(res.box))
   })
 
+  .patch(jsonBodyParser, (req, res, next) => {
+    const { box_name, coming_from, going_to, getting_there, box_notes, inventory } = req.body
+    const updateFields = { box_name, coming_from, going_to, getting_there, box_notes, inventory }
+    const numFields = Object.values(updateFields).filter(Boolean).length
+    if (numFields === 0) {
+      return res.status(400).json({
+        error: `Request body must contain one of 'box_name', 'coming_from', 'going_to', 'getting_there', 'box_notes', or 'inventory'`
+      })
+    }
+
+    BoxesService.updateBox(
+      req.app.get('db'),
+      req.params.id,
+      updateFields
+    )
+      .then(() => {
+        res.status(204).end()
+      })
+      .catch(next)
+  })
+
 async function checkBoxExists(req, res, next) {
   try {
     const box = await BoxesService.getBoxById(
