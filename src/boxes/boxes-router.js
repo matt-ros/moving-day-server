@@ -80,6 +80,17 @@ boxesRouter
       .catch(next)
   })
 
+  .delete((req, res, next) => {
+    BoxesService.deleteBox(
+      req.app.get('db'),
+      req.params.id
+    )
+      .then(() => {
+        res.status(204).end()
+      })
+      .catch(next)
+  })
+
 async function checkBoxExists(req, res, next) {
   try {
     const box = await BoxesService.getBoxById(

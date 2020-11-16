@@ -333,4 +333,55 @@ describe('Boxes Endpoints', () => {
       })
     })
   })
+
+  describe('DELETE /api/boxes/:id', () => {
+    context('Given no boxes', () => {
+      beforeEach('insert users', () => helpers.seedUsers(db, testUsers))
+
+      it('responds with 404', () => {
+        const boxId = 123456
+        return supertest(app)
+          .delete(`/api/boxes/${boxId}`)
+          .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
+          .expect(404, { error: `Box doesn't exist` })
+      })
+    })
+
+    context('Given there are boxes in the database', () => {
+      beforeEach('seed tables', () =>
+        helpers.seedMovingdayTables(
+          db,
+          testUsers,
+          [],
+          [],
+          testBoxes
+        )
+      )
+
+      it('responds 204 and removes the box if it belongs to the logged in user', () => {
+        const boxToRemove = testBoxes[2]
+        const user = testUsers.find(user => user.id === boxToRemove.user_id)
+        const expectedBoxes = testBoxes.filter(box => box.user_id === user.id && box.id !== boxToRemove.id)
+        return supertest(app)
+          .delete(`/api/boxes/${boxToRemove.id}`)
+          .set('Authorization', helpers.makeAuthHeader(user))
+          .expect(204)
+          .then(res =>
+            supertest(app)
+              .get('/api/boxes')
+              .set('Authorization', helpers.makeAuthHeader(user))
+              .expect(expectedBoxes)
+          )
+      })
+
+      it('responds 403 Forbidden if box belongs to different user', () => {
+        const boxId = testBoxes[0].id
+        const wrongUser = testUsers.find(user => user.id !== testBoxes[0].user_id)
+        return supertest(app)
+          .delete(`/api/boxes/${boxId}`)
+          .set('Authorization', helpers.makeAuthHeader(wrongUser))
+          .expect(403, { error: 'Box belongs to a different user' })
+      })
+    })
+  })
 })
