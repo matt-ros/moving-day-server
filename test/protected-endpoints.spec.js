@@ -116,6 +116,11 @@ describe('Protected Endpoints', () => {
       path: '/api/boxes/1',
       method: supertest(app).delete
     },
+    {
+      name: 'GET /api/getAll',
+      path: '/api/getAll',
+      method: supertest(app).get
+    },
   ]
 
   protectedEndpoints.forEach(endpoint => {

@@ -9,6 +9,7 @@ const usersRouter = require('./users/users-router');
 const contactsRouter = require('./contacts/contacts-router');
 const listsRouter = require('./lists/lists-router');
 const boxesRouter = require('./boxes/boxes-router');
+const getAllRouter = require('./getAll/all-router');
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use('/api/users', usersRouter);
 app.use('/api/contacts', contactsRouter);
 app.use('/api/lists', listsRouter);
 app.use('/api/boxes', boxesRouter);
+app.use('/api/getAll', getAllRouter);
 
 app.use(function errorHandler(error, req, res, next) {
   let response;
