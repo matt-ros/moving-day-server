@@ -40,6 +40,7 @@ const BoxesService = {
       coming_from: xss(box.coming_from),
       going_to: xss(box.going_to),
       getting_there: xss(box.getting_there),
+      color_code: xss(box.color_code),
       box_notes: xss(box.box_notes),
       inventory: box.inventory === null ? [] : box.inventory.map(item => xss(item)),
       date_created: new Date(box.date_created),

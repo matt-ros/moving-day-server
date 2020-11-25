@@ -65,11 +65,6 @@ INSERT INTO movingday_lists (
     'Mel''s To-Do',
     '{ "Play with Leko": false, "Find tape gun": false, "Make coffee": true }'::json,
     2
-  ),
-  (
-    'Test list with no items',
-    null,
-    1
   );
 
 INSERT INTO movingday_boxes (
@@ -77,6 +72,7 @@ INSERT INTO movingday_boxes (
   coming_from,
   going_to,
   getting_there,
+  color_code,
   box_notes,
   inventory,
   user_id
@@ -86,6 +82,7 @@ INSERT INTO movingday_boxes (
     'Kitchen',
     'Garage',
     'Moving Truck',
+    'Red',
     'Fragile',
     ARRAY[
       'Plates',
@@ -98,6 +95,7 @@ INSERT INTO movingday_boxes (
     'Kitchen',
     'Kitchen',
     'Matt''s Car',
+    'Green',
     null,
     ARRAY[
       'Silverware'
@@ -109,6 +107,7 @@ INSERT INTO movingday_boxes (
     'Living Room',
     'Storage Unit',
     'Moving Truck',
+    'Blue',
     null,
     ARRAY[
       'Games',
@@ -121,6 +120,7 @@ INSERT INTO movingday_boxes (
     'Kitchen',
     'Kitchen',
     'Moving Truck',
+    'Orange',
     'Fragile',
     ARRAY[
       'Bowls',
@@ -133,6 +133,7 @@ INSERT INTO movingday_boxes (
     'Storage Unit',
     'Storage Unit',
     'Moving Truck',
+    'Purple',
     null,
     ARRAY[
       'Clothes'

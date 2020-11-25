@@ -81,6 +81,7 @@ describe('Boxes Endpoints', () => {
             expect(res.body[0].coming_from).to.eql(expectedBox.coming_from)
             expect(res.body[0].going_to).to.eql(expectedBox.going_to)
             expect(res.body[0].getting_there).to.eql(expectedBox.getting_there)
+            expect(res.body[0].color_code).to.eql(expectedBox.color_code)
             expect(res.body[0].box_notes).to.eql(expectedBox.box_notes)
             expect(res.body[0].inventory).to.eql(expectedBox.inventory)
           })
@@ -112,6 +113,7 @@ describe('Boxes Endpoints', () => {
           coming_from: 'test coming_from',
           going_to: 'test going_to',
           getting_there: 'test getting_there',
+          color_code: 'test color_code',
           box_notes: 'test box_notes',
           inventory: ['test item 1', 'test item 2'],
           user_id: testUsers[0].id
@@ -127,6 +129,7 @@ describe('Boxes Endpoints', () => {
             expect(res.body.coming_from).to.eql(newBox.coming_from)
             expect(res.body.going_to).to.eql(newBox.going_to)
             expect(res.body.getting_there).to.eql(newBox.getting_there)
+            expect(res.body.color_code).to.eql(newBox.color_code)
             expect(res.body.box_notes).to.eql(newBox.box_notes)
             expect(res.body.inventory).to.eql(newBox.inventory)
             expect(res.body.user_id).to.eql(newBox.user_id)
@@ -145,6 +148,7 @@ describe('Boxes Endpoints', () => {
                 expect(row.coming_from).to.eql(newBox.coming_from)
                 expect(row.going_to).to.eql(newBox.going_to)
                 expect(row.getting_there).to.eql(newBox.getting_there)
+                expect(row.color_code).to.eql(newBox.color_code)
                 expect(row.box_notes).to.eql(newBox.box_notes)
                 expect(row.inventory).to.eql(newBox.inventory)
                 expect(row.user_id).to.eql(newBox.user_id)
@@ -225,6 +229,7 @@ describe('Boxes Endpoints', () => {
             expect(res.body.coming_from).to.eql(expectedBox.coming_from)
             expect(res.body.going_to).to.eql(expectedBox.going_to)
             expect(res.body.getting_there).to.eql(expectedBox.getting_there)
+            expect(res.body.color_code).to.eql(expectedBox.color_code)
             expect(res.body.box_notes).to.eql(expectedBox.box_notes)
             expect(res.body.inventory).to.eql(expectedBox.inventory)
           })
@@ -263,6 +268,7 @@ describe('Boxes Endpoints', () => {
           coming_from: 'updated coming_from',
           going_to: 'updated going_to',
           getting_there: 'updated getting_there',
+          color_code: 'updated color_code',
           box_notes: 'updated box_notes',
           inventory: [
             'updated item 1',
@@ -303,7 +309,7 @@ describe('Boxes Endpoints', () => {
           .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
           .send({ irrelevantField: 'foo' })
           .expect(400, {
-            error: `Request body must contain one of 'box_name', 'coming_from', 'going_to', 'getting_there', 'box_notes', or 'inventory'`
+            error: `Request body must contain one of 'box_name', 'coming_from', 'going_to', 'getting_there', 'color_code', 'box_notes', or 'inventory'`
           })
       })
 

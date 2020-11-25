@@ -124,6 +124,7 @@ function makeBoxesArray(users) {
       coming_from: 'test origin 1',
       going_to: 'test destination 1',
       getting_there: 'test transportation 1',
+      color_code: 'test color_code 1',
       box_notes: 'test notes 1',
       inventory: [
         'test item 1',
@@ -139,6 +140,7 @@ function makeBoxesArray(users) {
       coming_from: 'test origin 2',
       going_to: 'test destination 2',
       getting_there: 'test transportation 2',
+      color_code: 'test color_code 2',
       box_notes: 'test notes 2',
       inventory: [
         'test item 1',
@@ -154,6 +156,7 @@ function makeBoxesArray(users) {
       coming_from: 'test origin 3',
       going_to: 'test destination 3',
       getting_there: 'test transportation 3',
+      color_code: 'test color_code 3',
       box_notes: 'test notes 3',
       inventory: [
         'test item 1',
@@ -169,6 +172,7 @@ function makeBoxesArray(users) {
       coming_from: 'test origin 4',
       going_to: 'test destination 4',
       getting_there: 'test transportation 4',
+      color_code: 'test color_code 4',
       box_notes: 'test notes 4',
       inventory: [
         'test item 1',
@@ -326,6 +330,7 @@ function makeMaliciousBox(user) {
     coming_from: `Bad image <img src="https://url.to.file.which/does-not.exist" onerror="alert(document.cookie);">. But not <strong>all</strong> bad.`,
     going_to: `Bad image <img src="https://url.to.file.which/does-not.exist" onerror="alert(document.cookie);">. But not <strong>all</strong> bad.`,
     getting_there: 'Naughty naughty very naughty <script>alert("xss");</script>',
+    color_code: 'Naughty naughty very naughty <script>alert("xss");</script>',
     box_notes: 'Naughty naughty very naughty <script>alert("xss");</script>',
     inventory: [
       `Bad image <img src="https://url.to.file.which/does-not.exist" onerror="alert(document.cookie);">. But not <strong>all</strong> bad.`
@@ -339,6 +344,7 @@ function makeMaliciousBox(user) {
     coming_from: `Bad image <img src="https://url.to.file.which/does-not.exist">. But not <strong>all</strong> bad.`,
     going_to: `Bad image <img src="https://url.to.file.which/does-not.exist">. But not <strong>all</strong> bad.`,
     getting_there: 'Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;',
+    color_code: 'Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;',
     box_notes: 'Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;',
     inventory: [
       `Bad image <img src="https://url.to.file.which/does-not.exist">. But not <strong>all</strong> bad.`

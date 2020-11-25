@@ -21,7 +21,7 @@ boxesRouter
   })
 
   .post(jsonBodyParser, (req, res, next) => {
-    const { box_name, coming_from, going_to, getting_there, box_notes, inventory } = req.body
+    const { box_name, coming_from, going_to, getting_there, color_code, box_notes, inventory } = req.body
     if (!box_name) {
       return res.status(400).json({
         error: `Missing 'box_name' in request body`
@@ -32,6 +32,7 @@ boxesRouter
       coming_from,
       going_to,
       getting_there,
+      color_code,
       box_notes,
       inventory,
       date_created: 'now()',
@@ -60,12 +61,12 @@ boxesRouter
   })
 
   .patch(jsonBodyParser, (req, res, next) => {
-    const { box_name, coming_from, going_to, getting_there, box_notes, inventory } = req.body
-    const updateFields = { box_name, coming_from, going_to, getting_there, box_notes, inventory }
+    const { box_name, coming_from, going_to, getting_there, color_code, box_notes, inventory } = req.body
+    const updateFields = { box_name, coming_from, going_to, getting_there, color_code, box_notes, inventory }
     const numFields = Object.values(updateFields).filter(Boolean).length
     if (numFields === 0) {
       return res.status(400).json({
-        error: `Request body must contain one of 'box_name', 'coming_from', 'going_to', 'getting_there', 'box_notes', or 'inventory'`
+        error: `Request body must contain one of 'box_name', 'coming_from', 'going_to', 'getting_there', 'color_code', 'box_notes', or 'inventory'`
       })
     }
 
