@@ -1,26 +1,75 @@
-# Express Boilerplate!
+# Moving Day
 
-This is a boilerplate project used for starting new projects!
+[Live App](https://moving-day-client.vercel.app/)
 
-## Set up
+[Moving Day Client Repo](https://github.com/matt-ros/moving-day-client)
 
-Complete the following steps to start a new project (NEW-PROJECT-NAME):
+## Summary
 
-1. Clone this repository to your local machine: `git clone https://github.com/matt-ros/express-boilerplate.git NEW-PROJECT-NAME`
-2. `cd` into the cloned repository
-3. Make a fresh start of the git history for this project: `rm -rf .git && git init`
-4. Install the node dependencies: `npm install`
-5. Move the example Environment file to `.env` that will be ignored by git and read by the express server: `mv example.env .env`
-6. Edit the contents of the `package.json` to use NEW-PROJECT-NAME instead of `"name": "express-boilerplate",`
+Moving Day was created to ease the stress of moving by keeping users organized during the process.  All your information can be kept in one place!
 
-## Scripts
+## API Endpoints
 
-Start the application: `npm start`
+### `/auth/login`
 
-Start the application with nodemon: `npm run dev`
+`POST` logs in a user with valid credentials
 
-Run the tests: `npm test`
+### `/boxes`
 
-## Deploying
+`GET` retrieves information for all boxes for the currently logged in user
 
-When your new project is ready for deployment, add a new Heroku application with `heroku create`. This will make a new git remote called "heroku" and you can then `npm run deploy` which will push to this remote's master branch.
+`POST` adds a new box associated with the current user
+
+### `/boxes/:box_id`
+
+`GET` retrieves information for a particular box if it is associated with the current user
+
+`PATCH` updates the box's information
+
+`DELETE` deletes the box
+
+### `/contacts`
+
+`GET` retrieves information for all contacts for the currently logged in user
+
+`POST` adds a new contact associated with the current user
+
+### `/contacts/:contact_id`
+
+`GET` retrieves information for a particular contact if it is associated with the current user
+
+`PATCH` updates the contact's information
+
+`DELETE` deletes the contact
+
+### `/lists`
+
+`GET` retrieves information for all lists for the currently logged in user
+
+`POST` adds a new list associated with the current user
+
+### `/lists/:list_id`
+
+`GET` retrieves information for a particular list if it is associated with the current user
+
+`PATCH` updates the list's information
+
+`DELETE` deletes the list
+
+### `/users`
+
+`POST` creates a new user
+
+`PATCH` updates notes or moving date for the currently logged in user
+
+`GET` retrieves the current user's information
+
+### `/getAll`
+
+`GET` retrieves user information and all boxes, contacts, and lists for the current user
+
+## Technology
+
+* Node.js
+* Express
+* PostgreSQL
